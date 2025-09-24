@@ -1,48 +1,53 @@
 #!/bin/bash
-# Skript: sync_to_nas.sh
-# Zweck: Sync von /merp-backups nach Synology NAS mit Fortschritt
+# Skript: sync_to_nas.sh (WebDAV version, v3)
+# Zweck: Sync von /merp-backups nach Synology NAS mit rclone und WebDAV
 
 LOCAL_DIR="/merp-backups"
-NAS_USER="Midnight"
-NAS_HOST="mikev2-2103.synology.me"
-NAS_PORT="6969"
-SSH_KEY="/root/.ssh/merp_backup_key"
-NAS_DIR="/volume1/Karstens-Daten/Midnight/Backups"
+REMOTE_NAME="MyNAS"
+REMOTE_DIR="/Karstens-Daten/Midnight/Backups"
 PROGRESS_FILE="/tmp/rsync_progress.txt"
+RCLONE_LOG_FILE="/tmp/rclone_log.json"
 
-# --- Gesamtgröße der Dateien berechnen ---
-TOTAL_BYTES=$(find "$LOCAL_DIR" -type f -exec stat -c%s {} \; | awk '{s+=$1} END {print s}')
-echo "START,0,$TOTAL_BYTES" > "$PROGRESS_FILE"
+# --- Startnachricht für den Bot ---
+echo "START,0,1" > "$PROGRESS_FILE"
 
-# --- Rsync mit Fortschritt in Bytes ---
-SYNCED_BYTES=0
-LAST_UPDATE=$(date +%s)
+# --- rclone ausführen und Log speichern ---
+# Führe rclone aus und speichere den gesamten JSON-Output in einer Log-Datei.
+# Der Exit-Code wird zur späteren Überprüfung gespeichert.
+rclone sync "$LOCAL_DIR" "$REMOTE_NAME:$REMOTE_DIR" --progress --use-json-log --log-level INFO > "$RCLONE_LOG_FILE" 2>&1
+RCLONE_EXIT_CODE=$?
 
-rsync -avz --no-perms --no-owner --no-group \
---progress \
--e "ssh -q -p $NAS_PORT -i $SSH_KEY" \
-"$LOCAL_DIR/" "$NAS_USER@$NAS_HOST:$NAS_DIR/" | while read -r line; do
-    # Zeilen mit "to-check" ignorieren, wir nehmen "bytes" aus progress output
-    if [[ "$line" =~ ([0-9]+)bytes ]]; then
-        # Extrahiere Bytes übertragen
-        BYTES=${BASH_REMATCH[1]}
-        SYNCED_BYTES=$BYTES
-        PERCENT=$((SYNCED_BYTES * 100 / TOTAL_BYTES))
-        NOW=$(date +%s)
-        if (( NOW - LAST_UPDATE >= 60 )); then
-            echo "$PERCENT,$SYNCED_BYTES,$TOTAL_BYTES" > "$PROGRESS_FILE"
-            LAST_UPDATE=$NOW
+# --- Log-Datei verarbeiten, um den Bot zu aktualisieren ---
+# Lese die gespeicherte Log-Datei Zeile für Zeile.
+while read -r line; do
+    if echo "$line" | grep -q '"stats"'; then
+        BYTES=$(echo "$line" | grep -o '"bytes":[0-9]*' | cut -d':' -f2)
+        TOTAL_BYTES=$(echo "$line" | grep -o '"totalBytes":[0-9]*' | cut -d':' -f2)
+
+        if [ -n "$BYTES" ] && [ -n "$TOTAL_BYTES" ]; then
+            # Schreibe den Fortschritt in die Datei, die der Bot liest.
+            echo "PROGRESS,$BYTES,$TOTAL_BYTES" > "$PROGRESS_FILE"
+            # Eine kleine Pause, damit der Bot die Änderung auch wirklich mitbekommt.
+            sleep 0.1
         fi
     fi
-done
+done < "$RCLONE_LOG_FILE"
 
-# --- Ergebnis prüfen ---
-if [ ${PIPESTATUS[0]} -eq 0 ]; then
-    ssh -q -p $NAS_PORT -i $SSH_KEY "$NAS_USER@$NAS_HOST" "
-        find \"$NAS_DIR\" -type f -name 'MidnightBackup*.zip' -mtime +3 -delete
-        find \"$NAS_DIR\" -type f -name 'MidnightBackup*.sql' -mtime +7 -delete
-    "
-    echo "SUCCESS,$TOTAL_BYTES,$TOTAL_BYTES" > "$PROGRESS_FILE"
+# --- Endergebnis prüfen und schreiben ---
+if [ $RCLONE_EXIT_CODE -eq 0 ]; then
+    # Bei Erfolg die letzte bekannte Gesamtgröße für die 100%-Anzeige verwenden.
+    FINAL_TOTAL_BYTES=$(tail -n1 "$PROGRESS_FILE" | cut -d',' -f3)
+    if [ -z "$FINAL_TOTAL_BYTES" ] || [ "$FINAL_TOTAL_BYTES" -eq 1 ]; then
+        # Falls keine Dateien übertragen wurden, berechne die Größe manuell.
+        FINAL_TOTAL_BYTES=$(rclone size --json "$LOCAL_DIR" | grep -o '"bytes":[0-9]*' | cut -d':' -f2)
+    fi
+    echo "SUCCESS,$FINAL_TOTAL_BYTES,$FINAL_TOTAL_BYTES" > "$PROGRESS_FILE"
 else
-    echo "FAIL,$SYNCED_BYTES,$TOTAL_BYTES" > "$PROGRESS_FILE"
+    # Bei einem Fehler die letzte bekannte Information verwenden.
+    FINAL_TOTAL_BYTES=$(tail -n1 "$PROGRESS_FILE" | cut -d',' -f3)
+    FINAL_SYNCED_BYTES=$(tail -n1 "$PROGRESS_FILE" | cut -d',' -f2)
+    echo "FAIL,$FINAL_SYNCED_BYTES,$FINAL_TOTAL_BYTES" > "$PROGRESS_FILE"
 fi
+
+# --- Eine letzte Pause, um sicherzustellen, dass der Bot die finale Nachricht liest ---
+sleep 3

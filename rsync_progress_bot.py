@@ -1,11 +1,13 @@
+
 import discord
 import asyncio
+from datetime import datetime
 
 # --- Konfiguration ---
 TOKEN = "MTQyMDQxMjgxMDI1NjU4NDcwNQ.Gcgcky.bN88QHwwkApc40wGHFxCo5MYQWykI1ZXm2pjJs"
 CHANNEL_ID = 1420173162846490784  # Discord-Kanal-ID
 PROGRESS_FILE = "/tmp/rsync_progress.txt"
-UPDATE_INTERVAL = 62  # Sekunden
+UPDATE_INTERVAL = 2  # Sekunden
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -40,22 +42,29 @@ async def update_progress():
                 await asyncio.sleep(UPDATE_INTERVAL)
                 continue
 
+            def bytes_to_gb(b):
+                return f"{b / (1024**3):.2f}"
+
             if total == 0:
                 percent = 0
             else:
                 percent = int(synced * 100 / total)
 
+            total_gb = bytes_to_gb(total)
+            synced_gb = bytes_to_gb(synced)
+
             if status == "START":
-                description = f"Fortschritt: **0%**\n(0 von {total} Bytes)"
+                description = f"Fortschritt: **0%**\n(0 von {total_gb} GB)"
                 color = 0xFFFF00
             elif status == "SUCCESS":
-                description = f"Fortschritt: **100%**\n({synced} von {total} Bytes)\n✅ Backup erfolgreich"
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                description = f"✅ Das Backup wurde Erfolgreich auf dem NAS Gespeichert\n*Abgeschlossen am: {timestamp}*"
                 color = 0x00FF00
             elif status == "FAIL":
-                description = f"Fortschritt: **Fehler**\n({synced} von {total} Bytes)\n❌ Backup fehlgeschlagen"
+                description = f"Fortschritt: **Fehler**\n({synced_gb} von {total_gb} GB)\n❌ Backup fehlgeschlagen"
                 color = 0xFF0000
-            else:
-                description = f"Fortschritt: **{percent}%**\n({synced} von {total} Bytes)"
+            else: # PROGRESS
+                description = f"Fortschritt: **{percent}%**\n({synced_gb} von {total_gb} GB)"
                 color = 0xFFFF00
 
             embed = discord.Embed(title="NAS Sync ⏳", description=description, color=color)
