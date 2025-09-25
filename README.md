@@ -22,6 +22,10 @@ Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle A
 - **Python 3.8+**
 - **pip** (Python-Paket-Installer)
 - **rclone**: Muss installiert und konfiguriert sein. Der Remote-Name (z.B. `MyNAS`) muss in Ihrer `rclone.conf` existieren.
+- **jq**: Ein Kommandozeilen-JSON-Prozessor auf Debian/Ubuntu.
+- **bc**: Ein Kommandozeilen-Taschenrechner auf Debian/Ubuntu.
+
+## Setup
 
 ## Setup
 
@@ -39,8 +43,6 @@ Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle A
     ```bash
     sudo apt-get install bc
     ```
-
-## Setup
 
 3.  **Skript konfigurieren:**
     Öffnen Sie die Datei `backup_bot.py` und passen Sie die folgenden Variablen im Konfigurationsbereich am Anfang der Datei an:
