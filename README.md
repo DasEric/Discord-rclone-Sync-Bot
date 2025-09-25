@@ -1,6 +1,9 @@
 # Rclone Discord Backup Bot
 
-Dieses Projekt verwendet ein einziges Python-Skript, um einen `rclone`-Backup-Prozess zu verwalten und den Fortschritt in Echtzeit an einen Discord-Kanal zu senden.
+Dieses Projekt verwendet ein einziges Python-Skript, um einen `rclone`-Backup-Prozess zu verwalten und den Fortschritt in Echtzeit an einen Discord-Kanal zu senden. Falls etwas nicht Funktioniert einfach bescheid geben es wird sich dann darum gekümmert.
+
+## BITTE BEACHTEN
+**Ich habe rclone mit WebDAV Konfiguriert ich weiß nicht ob der Bot auch mit einer anderen rclone Konfiguration funktioniert**
 
 ## Funktionsweise
 
