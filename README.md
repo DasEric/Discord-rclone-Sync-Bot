@@ -27,8 +27,6 @@ Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle A
 
 ## Setup
 
-## Setup
-
 1.  **Python-Bibliotheken installieren:**
     ```bash
     pip install discord.py
