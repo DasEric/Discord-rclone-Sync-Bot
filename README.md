@@ -29,8 +29,20 @@ Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle A
     ```bash
     pip install discord.py
     ```
+    
+2. **Packete Installieren**
+    - **jq**: Ein Kommandozeilen-JSON-Prozessor auf Debian/Ubuntu. 
+    ```bash
+    sudo apt-get install jq
+    ```
+    - **bc**: Ein Kommandozeilen-Taschenrechner auf Debian/Ubuntu. 
+    ```bash
+    sudo apt-get install bc
+    ```
 
-2.  **Skript konfigurieren:**
+## Setup
+
+3.  **Skript konfigurieren:**
     Öffnen Sie die Datei `backup_bot.py` und passen Sie die folgenden Variablen im Konfigurationsbereich am Anfang der Datei an:
     - `TOKEN`: Ihr Discord-Bot-Token. **BEHANDELN SIE DIESES WIE EIN PASSWORT!**
     - `CHANNEL_ID`: Die ID des Discord-Kanals, in den die Nachrichten gesendet werden sollen.
@@ -40,10 +52,10 @@ Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle A
 
 ## Ausführung
 
-Um den Backup-Prozess und den Bot zu starten, führen Sie einfach das Python-Skript direkt aus:
+Um den Backup-Prozess und den Bot zu starten, führen Sie einfach das Skript direkt aus:
 
 ```bash
-python backup_bot.py
+./backup_start.sh
 ```
 
 Das Skript kümmert sich um das Beenden alter Prozesse, das Starten des `rclone`-Daemons und die gesamte Berichterstattung.
