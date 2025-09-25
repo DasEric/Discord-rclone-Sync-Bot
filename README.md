@@ -34,7 +34,7 @@ Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle A
     pip install discord.py
     ```
     
-2. **Packete Installieren**
+2. **Packete Installieren:**
     **jq**: Ein Kommandozeilen-JSON-Prozessor auf Debian/Ubuntu. 
     ```bash
     sudo apt-get install jq
