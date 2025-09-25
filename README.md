@@ -5,6 +5,10 @@ Dieses Projekt verwendet ein einziges Python-Skript, um einen `rclone`-Backup-Pr
 ## BITTE BEACHTEN
 **Ich habe rclone mit WebDAV Konfiguriert ich weiß nicht ob der Bot auch mit einer anderen rclone Konfiguration funktioniert**
 
+<img width="295" height="185" alt="Screenshot_4" src="https://github.com/user-attachments/assets/3e2d39f1-8e17-465f-ae71-c1df43caf327" />
+<img width="477" height="154" alt="Screenshot_3" src="https://github.com/user-attachments/assets/fd1277b7-f9f3-48be-aaec-3e7d59166262" />
+<img width="395" height="137" alt="Screenshot_2" src="https://github.com/user-attachments/assets/f897363a-2ae8-46f5-a5d7-d2bdc4795855" />
+
 ## Funktionsweise
 
 Das System besteht aus einem einzigen Python-Skript, `backup_bot.py`, das alle Aspekte des Prozesses steuert:
